@@ -1,0 +1,32 @@
+/* Additional app-specific styles */
+
+.about {
+  background: rgba(26, 31, 58, 0.5);
+}
+
+.about p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+.skills {
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.projects {
+  background: rgba(26, 31, 58, 0.5);
+}
+
+.contact {
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.contact p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
