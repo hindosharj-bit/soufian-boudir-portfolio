@@ -18,7 +18,7 @@ router.post('/templates', (req, res) => {
 
 router.put('/templates/:id', (req, res) => {
   const { name, subject, body_html, body_text } = req.body;
-  db.prepare('UPDATE templates SET name=?, subject=?, body_html=?, body_text=?, updated_at=datetime("now") WHERE id=?')
+  db.prepare("UPDATE templates SET name=?, subject=?, body_html=?, body_text=?, updated_at=datetime('now') WHERE id=?")
     .run(name, subject, body_html, body_text || '', req.params.id);
   res.json({ updated: true });
 });
@@ -53,7 +53,7 @@ router.post('/:id/send', async (req, res) => {
   res.json({ message: 'Campaign started', campaignId: campaign.id });
 
   sendCampaign(campaign.id).catch(err => {
-    db.prepare('UPDATE campaigns SET status = "failed" WHERE id = ?').run(campaign.id);
+    db.prepare("UPDATE campaigns SET status = 'failed' WHERE id = ?").run(campaign.id);
     console.error('Campaign failed:', err);
   });
 });

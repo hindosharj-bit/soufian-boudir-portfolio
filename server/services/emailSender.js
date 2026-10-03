@@ -54,7 +54,7 @@ export async function sendEmail(contact, subject, htmlBody, textBody) {
     text: finalText,
   });
 
-  db.prepare('UPDATE smtp_servers SET sent_today = sent_today + 1, last_used_at = datetime("now") WHERE id = ?')
+  db.prepare("UPDATE smtp_servers SET sent_today = sent_today + 1, last_used_at = datetime('now') WHERE id = ?")
     .run(smtp.id);
 
   return { messageId: result.messageId, smtpId: smtp.id };
@@ -67,7 +67,7 @@ export async function sendCampaign(campaignId) {
   const template = db.prepare('SELECT * FROM templates WHERE id = ?').get(campaign.template_id);
   if (!template) throw new Error('Template not found');
 
-  let contactsQuery = 'SELECT * FROM contacts WHERE email IS NOT NULL AND email != ""';
+  let contactsQuery = "SELECT * FROM contacts WHERE email IS NOT NULL AND email != ''";
   if (campaign.tags_filter) {
     const tags = campaign.tags_filter.split(',').map(t => t.trim());
     const clauses = tags.map(t => `tags LIKE '%${t}%'`).join(' OR ');
@@ -75,7 +75,7 @@ export async function sendCampaign(campaignId) {
   }
   const contacts = db.prepare(contactsQuery).all();
 
-  db.prepare('UPDATE campaigns SET status = "sending", started_at = datetime("now"), total_recipients = ? WHERE id = ?')
+  db.prepare("UPDATE campaigns SET status = 'sending', started_at = datetime('now'), total_recipients = ? WHERE id = ?")
     .run(contacts.length, campaignId);
 
   let sentCount = 0;
@@ -104,7 +104,7 @@ export async function sendCampaign(campaignId) {
       .run(sentCount, failedCount, campaignId);
   }
 
-  db.prepare('UPDATE campaigns SET status = "completed", completed_at = datetime("now") WHERE id = ?')
+  db.prepare("UPDATE campaigns SET status = 'completed', completed_at = datetime('now') WHERE id = ?")
     .run(campaignId);
 
   return { sentCount, failedCount, total: contacts.length };

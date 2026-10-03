@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
   const totalDailyCapacity = db.prepare('SELECT COALESCE(SUM(daily_limit), 0) as total FROM smtp_servers WHERE is_active = 1').get().total;
 
   const totalCampaigns = db.prepare('SELECT COUNT(*) as count FROM campaigns').get().count;
-  const activeCampaigns = db.prepare('SELECT COUNT(*) as count FROM campaigns WHERE status = "sending"').get().count;
+  const activeCampaigns = db.prepare("SELECT COUNT(*) as count FROM campaigns WHERE status = 'sending'").get().count;
   const totalSent = db.prepare('SELECT COALESCE(SUM(sent_count), 0) as total FROM campaigns').get().total;
 
   const totalSearchResults = db.prepare('SELECT COUNT(*) as count FROM search_results').get().count;
