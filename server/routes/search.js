@@ -21,8 +21,8 @@ router.post('/search', async (req, res) => {
   if (!query) return res.status(400).json({ error: 'Query required' });
 
   try {
-    const results = await searchAndScrape(query, Math.min(pages, 5));
-    res.json({ results, query });
+    const { results, log, totalScraped } = await searchAndScrape(query, Math.min(pages, 5));
+    res.json({ results, log, totalScraped, query });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

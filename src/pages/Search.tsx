@@ -17,9 +17,12 @@ export default function Search() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [searchResults, setSearchResults] = useState<ScrapeResult[]>([])
+  const [searchLog, setSearchLog] = useState<string[]>([])
+  const [totalScraped, setTotalScraped] = useState(0)
   const [scrapeResult, setScrapeResult] = useState<ScrapeResult | null>(null)
   const [history, setHistory] = useState<SearchResult[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [searchError, setSearchError] = useState('')
 
   useEffect(() => {
     if (tab === 'history') loadHistory()
@@ -30,12 +33,21 @@ export default function Search() {
   const handleSearch = async () => {
     if (!query.trim()) return
     setLoading(true)
+    setSearchResults([])
+    setSearchLog([])
+    setSearchError('')
+    setTotalScraped(0)
     try {
       const data = await api.search.search(query, pages)
-      setSearchResults(data.results)
+      setSearchResults(data.results || [])
+      setSearchLog(data.log || [])
+      setTotalScraped(data.totalScraped || 0)
+      if (data.results?.length === 0) {
+        setSearchError('Aucun email ou telephone trouve. Essayez avec des mots-cles plus specifiques (ex: "restaurant casablanca email", "agence immobiliere contact").')
+      }
       loadHistory()
     } catch (err) {
-      alert((err as Error).message)
+      setSearchError((err as Error).message)
     }
     setLoading(false)
   }
@@ -81,6 +93,9 @@ export default function Search() {
     setSelected(s)
   }
 
+  const totalEmails = searchResults.reduce((sum, r) => sum + (r.emails?.length || 0), 0)
+  const totalPhones = searchResults.reduce((sum, r) => sum + (r.phones?.length || 0), 0)
+
   return (
     <div className="page">
       <div className="page-header">
@@ -104,7 +119,7 @@ export default function Search() {
           <div className="search-form">
             <input
               type="text"
-              placeholder="Ex: restaurant casablanca, agence immobiliere marrakech, dentiste rabat..."
+              placeholder="Ex: restaurant casablanca email, plombier paris contact, dentiste rabat..."
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -126,9 +141,37 @@ export default function Search() {
             </div>
           </div>
 
-          {searchResults.length > 0 && (
+          {loading && (
+            <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+              <div className="spinner" />
+              <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>
+                Recherche et scraping en cours... Cela peut prendre 30-60 secondes par page.
+              </p>
+            </div>
+          )}
+
+          {searchError && !loading && (
+            <div className="card" style={{ padding: '1rem', borderColor: 'var(--danger)', background: 'rgba(255,59,48,0.1)' }}>
+              <p style={{ color: 'var(--danger)', margin: 0 }}>{searchError}</p>
+            </div>
+          )}
+
+          {searchLog.length > 0 && !loading && (
+            <div className="card" style={{ padding: '1rem', marginBottom: '1rem' }}>
+              <details>
+                <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  Log de recherche ({totalScraped} URLs scrapees, {totalEmails} emails, {totalPhones} telephones)
+                </summary>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                  {searchLog.map((line, i) => <div key={i}>{line}</div>)}
+                </div>
+              </details>
+            </div>
+          )}
+
+          {searchResults.length > 0 && !loading && (
             <div className="results-section">
-              <h3>Resultats ({searchResults.length} sites scrapes)</h3>
+              <h3>Resultats: {searchResults.length} sites avec contacts ({totalEmails} emails, {totalPhones} telephones)</h3>
               {searchResults.map((r, i) => (
                 <div key={i} className="card result-card">
                   <div className="card-header">
@@ -150,9 +193,6 @@ export default function Search() {
                           <span className="result-label">Telephones :</span>
                           {r.phones.map(p => <span key={p} className="badge badge-blue">{p}</span>)}
                         </div>
-                      )}
-                      {r.emails.length === 0 && r.phones.length === 0 && (
-                        <p className="empty-text">Aucun email ou telephone trouve</p>
                       )}
                     </div>
                   )}
@@ -185,6 +225,9 @@ export default function Search() {
                 <h4>{scrapeResult.title || scrapeResult.url}</h4>
               </div>
               <div className="card-body">
+                {scrapeResult.error && (
+                  <p className="text-danger">{scrapeResult.error}</p>
+                )}
                 {scrapeResult.emails.length > 0 && (
                   <div className="result-items">
                     <span className="result-label">Emails trouves :</span>
@@ -197,7 +240,7 @@ export default function Search() {
                     {scrapeResult.phones.map(p => <span key={p} className="badge badge-blue">{p}</span>)}
                   </div>
                 )}
-                {scrapeResult.emails.length === 0 && scrapeResult.phones.length === 0 && (
+                {!scrapeResult.error && scrapeResult.emails.length === 0 && scrapeResult.phones.length === 0 && (
                   <p className="empty-text">Aucun email ou telephone trouve sur cette page</p>
                 )}
               </div>
