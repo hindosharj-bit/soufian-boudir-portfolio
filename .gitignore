@@ -38,5 +38,10 @@ lerna-debug.log*
 .settings/
 *.sublime-workspace
 
+# Database
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+
 # OS
 Thumbs.db
